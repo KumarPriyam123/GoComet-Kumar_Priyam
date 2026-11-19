@@ -1,0 +1,24 @@
+digraph architecture {
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=11, nodesep=0.5, ranksep=0.7, pad=0.3];
+  node  [fontname="Helvetica", fontsize=11, shape=box, style="rounded,filled", fillcolor="#f6f8fa", color="#8c959f"];
+  edge  [fontname="Helvetica", fontsize=9, color="#57606a"];
+
+  browser [label="Browser\n(buyer / supplier)", fillcolor="#ffffff"];
+  react   [label="React frontend\n(Vite)\nList · Create · Details\npolls every 3-5 s"];
+
+  subgraph cluster_api {
+    label="Express API (Node.js)"; fontname="Helvetica"; fontsize=11; style="rounded"; color="#8c959f";
+    routes   [label="routes + controllers\nvalidators (zod)"];
+    services [label="services\nrfq · bid · ranking\nextension · status"];
+    job      [label="close-auctions job\n(every 5 s)"];
+  }
+
+  db [label="PostgreSQL\nsuppliers · rfqs · bids\nauction_activity_logs", shape=cylinder, fillcolor="#ddf4ff"];
+
+  browser -> react;
+  react -> routes [label="REST /api"];
+  routes -> services;
+  services -> db [label="one transaction per bid\nSELECT ... FOR UPDATE"];
+  job -> db [label="mark CLOSED /\nFORCE_CLOSED"];
+}
